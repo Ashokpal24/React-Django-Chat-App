@@ -5,6 +5,7 @@ const Chat = () => {
     const [input, setInput] = useState('');
     const [roomName, setRoomName] = useState('');
     const [ws, setWs] = useState(null);
+    const UserName = "User" + Math.floor(Math.random() * 100)
 
     useEffect(() => {
         if (roomName) {
@@ -15,10 +16,10 @@ const Chat = () => {
             };
 
             newWs.onmessage = (evt) => {
-                const msg = JSON.parse(evt.data)['message'];
+                const data = JSON.parse(evt.data);
 
                 setMessages((prev) => {
-                    return [...prev, msg]
+                    return [...prev, data]
                 });
             };
 
@@ -38,7 +39,7 @@ const Chat = () => {
 
     const sendMessage = () => {
         if (ws) {
-            ws.send(JSON.stringify({ message: input }));
+            ws.send(JSON.stringify({ message: input, username: UserName }));
             setInput('');
         }
     };
@@ -46,8 +47,12 @@ const Chat = () => {
     return (
         <div>
             <div>
-                {messages.map((message, index) => (
-                    <div key={index}>{message}</div>
+                {messages.map((data, index) => (
+                    <div key={index}>
+                        Username: {data['username']}
+                        <br />
+                        Message: {data['message']}
+                    </div>
                 ))}
             </div>
             <input
