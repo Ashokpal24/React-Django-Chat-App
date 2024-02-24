@@ -40,9 +40,9 @@ class UserLoginView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = UserLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        username = serializer.data.get('username')  # type: ignore
+        email = serializer.data.get('email')  # type: ignore
         password = serializer.data.get('password')  # type: ignore
-        user = authenticate(username=username, password=password)
+        user = authenticate(email=email, password=password)
         if not user:
             return Response(
                 {"Error": ["Email or password is not valid!"]},

@@ -6,11 +6,10 @@ from django.contrib.auth.models import (
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, name, username, email, password=None, password2=None):
+    def create_user(self, name, email, password=None, password2=None):
 
         user = self.model(
             name=name,
-            username=username,
             email=email
         )
 
@@ -18,10 +17,9 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, name, username, email, password=None):
+    def create_superuser(self, name, email, password=None):
         user = self.create_user(
             name=name,
-            username=username,
             email=email,
             password=password
         )
@@ -36,12 +34,6 @@ class User(AbstractBaseUser):
         max_length=255,
         blank=False
     )
-    username = models.CharField(
-        verbose_name="User Name",
-        max_length=255,
-        blank=False,
-        unique=True
-    )
     email = models.EmailField(
         verbose_name="Email",
         max_length=255,
@@ -53,13 +45,13 @@ class User(AbstractBaseUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ["name", "email"]
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["name"]
 
     objects = UserManager()
 
     def __str__(self):
-        return f"Name: {self.name}\n User Name: {self.username}\n Email: {self.email}"
+        return f"Name: {self.name}\n Is Active: {self.is_active}\n Email: {self.email}"
 
     def has_perm(self, perm, obj=None):
         return self.is_admin

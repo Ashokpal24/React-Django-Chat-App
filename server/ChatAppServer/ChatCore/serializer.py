@@ -10,7 +10,7 @@ class UserRegisterationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['name', 'username', 'email', 'password', 'password2']
+        fields = ['name', 'email', 'password', 'password2']
         extra_kwargs = {
             'password': {'write_only': True}
         }
@@ -29,14 +29,14 @@ class UserRegisterationSerializer(serializers.ModelSerializer):
 
 
 class UserLoginSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(max_length=255)
+    email = serializers.EmailField(max_length=255)
 
     class Meta:
         model = User
-        fields = ["username", "password"]
+        fields = ["email", "password"]
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "name", "username", "email", "project_list"]
+        fields = ["id", "name", 'email']
