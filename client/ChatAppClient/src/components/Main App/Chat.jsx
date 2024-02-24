@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -8,17 +9,34 @@ import {
   Avatar,
 } from "@mui/material";
 
-import UserName from "../utils";
+import { loadJWTToken, deleteJWTToken, checkExpiration } from "../utils.jsx";
+import CircularProgress from "@mui/material/CircularProgress";
 
 const Chat = () => {
   const [messages, setMessages] = useState([
     // { message: "Hello world", username: "User01" },
     // { message: "What is uppp", username: "User02" },
   ]);
+  const [showPage, setShowPage] = useState(false);
   const [input, setInput] = useState("");
   const [roomName, setRoomName] = useState("");
   const [ws, setWs] = useState(null);
-  // const UserName = "User01"
+
+  const token = loadJWTToken();
+  const navigateTo = useNavigate();
+
+  useEffect(() => {
+    if (token == null) {
+      navigateTo("/login");
+      return;
+    }
+    if (checkExpiration(token.accessToken) == false) {
+      navigateTo("/login");
+      return;
+    }
+    setShowPage(true);
+  }, []);
+
   useEffect(() => {
     if (roomName) {
       const newWs = new WebSocket(`wss://5j85dm-8000.csb.app/ws/${roomName}/`);
@@ -56,7 +74,20 @@ const Chat = () => {
     }
   };
 
-  return (
+  return !showPage ? (
+    <div
+      style={{
+        width: "100%",
+        height: "100vh",
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <CircularProgress />
+    </div>
+  ) : (
     <Box
       sx={{
         width: "98vw",
@@ -146,8 +177,22 @@ const Chat = () => {
           >
             Send
           </Button>
-          <Button variant="outlined" onClick={createRoom}>
+          <Button
+            sx={{ marginRight: "1.5rem" }}
+            variant="outlined"
+            onClick={createRoom}
+          >
             Create Room
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              deleteJWTToken();
+              navigateTo("/login");
+            }}
+          >
+            Logout
           </Button>
         </Box>
       </Box>

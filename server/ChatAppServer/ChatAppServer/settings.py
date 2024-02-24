@@ -16,13 +16,15 @@ SECRET_KEY = "django-insecure-hg-+x(84@n5%0h5s20o-c&sewp^ijlsb3oyonzts@r@=jgly51
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "https://silver-couscous-xqv4qqrpwxw345w-5173.app.github.dev",
     "5j85dm-5173.csb.app",
     "5j85dm-8000.csb.app"
 ]
 
+CORS_ORIGIN_WHITELIST = [
+    'https://5j85dm-5173.csb.app'
+]
+
 CSRF_TRUSTED_ORIGINS = [
-    "https://silver-couscous-xqv4qqrpwxw345w-5173.app.github.dev",
     "https://5j85dm-5173.csb.app",
     "https://5j85dm-8000.csb.app"
 ]
@@ -33,20 +35,23 @@ CSRF_TRUSTED_ORIGINS = [
 INSTALLED_APPS = [
     "channels",
     "daphne",
-    "ChatCore",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
+    "ChatCore",
 ]
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    'corsheaders.middleware.CorsMiddleware',
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
