@@ -1,6 +1,7 @@
 import { jwtDecode } from "jwt-decode";
 const loginURL = "https://5j85dm-8000.csb.app/login/";
 const registerURL = "https://5j85dm-8000.csb.app/register/";
+const profileURL = "https://5j85dm-8000.csb.app/profile/";
 
 const saveJWTToken = ({ accessToken, refreshToken }) => {
   localStorage.setItem(
@@ -40,4 +41,5 @@ export {
   checkExpiration,
   loginURL,
   registerURL,
+  profileURL,
 };
