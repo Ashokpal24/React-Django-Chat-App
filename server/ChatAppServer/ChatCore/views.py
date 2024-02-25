@@ -65,3 +65,17 @@ class UserProfileView(APIView):
     def get(self, request, *args, **kwargs):
         serializer = UserProfileSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UserListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user_list = User.objects.all().exclude(id=request.user.id)
+        if not user_list:
+            return Response(
+                {"message": "No Task available"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        serializer = UserProfileSerializer(user_list, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

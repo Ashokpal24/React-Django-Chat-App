@@ -17,15 +17,16 @@ import {
   deleteJWTToken,
   checkExpiration,
   profileURL,
+  usersURL,
 } from "../utils.jsx";
 import CircularProgress from "@mui/material/CircularProgress";
 
 const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [showPage, setShowPage] = useState(false);
-  const [UserData, setUserData] = useState("");
+  const [profileData, setProfileData] = useState(null);
+  const [userList, setUserList] = useState([]);
   const [input, setInput] = useState("");
-  const [roomName, setRoomName] = useState("");
   const [ws, setWs] = useState(null);
 
   const token = loadJWTToken();
@@ -40,35 +41,34 @@ const Chat = () => {
       navigateTo("/login");
       return;
     }
-    handleGetProfile();
+    handleGetData({ URL: profileURL, setFunc: setProfileData });
+    handleGetData({ URL: usersURL, setFunc: setUserList });
     setShowPage(true);
   }, []);
 
   useEffect(() => {
-    if (roomName) {
-      const newWs = new WebSocket(`wss://5j85dm-8000.csb.app/ws/${roomName}/`);
-      setWs(newWs);
-      newWs.onopen = () => {
-        console.log("Connected to WebSocket");
-      };
+    const newWs = new WebSocket(`wss://5j85dm-8000.csb.app/ws/privateChat/`);
+    setWs(newWs);
+    newWs.onopen = () => {
+      console.log("Connected to WebSocket");
+    };
 
-      newWs.onmessage = (evt) => {
-        const data = JSON.parse(evt.data);
+    newWs.onmessage = (evt) => {
+      const data = JSON.parse(evt.data);
 
-        setMessages((prev) => {
-          return [...prev, data];
-        });
-      };
+      setMessages((prev) => {
+        return [...prev, data];
+      });
+    };
 
-      newWs.onclose = () => {
-        console.log("Disconnected from WebSocket");
-      };
+    newWs.onclose = () => {
+      console.log("Disconnected from WebSocket");
+    };
 
-      return () => {
-        newWs.close();
-      };
-    }
-  }, [roomName]);
+    return () => {
+      newWs.close();
+    };
+  }, [profileData]);
 
   useEffect(() => {
     let objDiv = document.getElementById("chat-container");
@@ -77,13 +77,13 @@ const Chat = () => {
     }
   }, [messages]);
 
-  const createRoom = () => {
-    setRoomName(input);
-  };
+  // const createRoom = () => {
+  //   setRoomName(input);
+  // };
 
-  const handleGetProfile = async () => {
+  const handleGetData = async ({ URL, setFunc }) => {
     try {
-      const response = await fetch(profileURL, {
+      const response = await fetch(URL, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -95,7 +95,7 @@ const Chat = () => {
         console.error(errorData);
       }
       const data = await response.json();
-      setUserData(data);
+      setFunc(data);
     } catch (error) {
       console.error("An error occurred during retriving of data:", error);
     }
@@ -103,12 +103,12 @@ const Chat = () => {
 
   const sendMessage = () => {
     if (ws) {
-      ws.send(JSON.stringify({ message: input, username: UserData.name }));
+      ws.send(JSON.stringify({ message: input, username: profileData.name }));
       setInput("");
     }
   };
 
-  return !showPage || UserData == "" ? (
+  return !showPage || profileData == null ? (
     <div
       style={{
         width: "100%",
@@ -124,21 +124,60 @@ const Chat = () => {
   ) : (
     <Box
       sx={{
-        width: "98vw",
-        height: "95vh",
+        width: "100%",
         display: "flex",
-        flexDirection: "column",
+        flexDirection: "row",
         justifyContent: "center",
-        alignItems: "center",
+        alignItems: "start",
       }}
     >
       <Box
         sx={{
-          width: "600px",
-          height: "98vh",
+          width: "300px",
+          height: "500px",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "center",
+          justifyContent: "start",
+          alignItems: "center",
+          marginRight: "1rem",
+        }}
+      >
+        <List
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            width: "100%",
+            height: "100%",
+            overflowY: "scroll",
+            scrollbarWidth: "thin",
+            scrollSnapAlign: "end",
+            scrollBehavior: "smooth",
+            scrollbarColor: "gray white",
+            marginBottom: "1.5rem",
+            borderRadius: "0.2rem",
+            padding: 0,
+          }}
+        >
+          <Typography sx={{ marginLeft: "1rem" }} variant="h6">
+            User List
+          </Typography>
+          <Divider />
+          {userList.map((user, index) => (
+            <Box sx={{ height: "20px" }} key={user.name}>
+              <ListItemButton>
+                <Typography>{user.name}</Typography>
+              </ListItemButton>
+            </Box>
+          ))}
+        </List>
+      </Box>
+      <Divider flexItem orientation="vertical" sx={{ marginRight: "1rem" }} />
+      <Box
+        sx={{
+          width: "600px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "start",
           alignItems: "center",
         }}
       >
@@ -153,14 +192,13 @@ const Chat = () => {
             scrollbarWidth: "thin",
             scrollSnapAlign: "end",
             scrollBehavior: "smooth",
-            marginBottom: "1.5rem",
-            border: "1px solid",
+            scrollbarColor: "gray white",
             borderRadius: "0.2rem",
           }}
         >
           {messages.map((data, index) => {
             const userTempName = data["username"];
-            const isUser = userTempName == UserData.name;
+            const isUser = userTempName == profileData.name;
             return (
               <ListItem key={index}>
                 <Box
@@ -205,6 +243,8 @@ const Chat = () => {
             );
           })}
         </List>
+        <Divider flexItem sx={{ marginBottom: "1.5rem" }} />
+
         <TextField
           sx={{
             width: "100%",
@@ -234,13 +274,13 @@ const Chat = () => {
           >
             Send
           </Button>
-          <Button
+          {/* <Button
             sx={{ marginRight: "1.5rem" }}
             variant="outlined"
             onClick={createRoom}
           >
             Create Room
-          </Button>
+          </Button> */}
           <Button
             variant="contained"
             color="error"
