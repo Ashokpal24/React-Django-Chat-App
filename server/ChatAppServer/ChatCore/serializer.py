@@ -1,5 +1,7 @@
 from rest_framework import serializers
-from .models import (User, Room, Message)
+from .models import (User,
+                     Room,
+                     Message)
 
 
 class UserRegisterationSerializer(serializers.ModelSerializer):
@@ -50,7 +52,11 @@ class MessageDetailedSerializer(serializers.ModelSerializer):
 
 
 class MessageListSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.name')
+    message = serializers.CharField(source='content')
+
     class Meta:
         model = Message
-        field = ["id", "user", "content"]
+        field = ["id", "username", "message"]
+        exclude = ["room", "date_added", "user", "content"]
         ordering = ('date_added')

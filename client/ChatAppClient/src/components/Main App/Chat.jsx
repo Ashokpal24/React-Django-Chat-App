@@ -45,6 +45,7 @@ const Chat = () => {
     }
     handleGetData({ URL: profileURL, setFunc: setProfileData });
     handleGetData({ URL: usersURL, setFunc: setUserList });
+
     setShowPage(true);
   }, []);
 
@@ -89,12 +90,17 @@ const Chat = () => {
           "_" +
           targetUser.email.split("@")[0];
     // console.log(roomName);
+    handleGetData({
+      URL: messagURL,
+      setFunc: setMessages,
+      URLParam: roomName,
+    });
     setRoomName(roomName);
   };
 
   const handleGetData = async ({ URL, setFunc, URLParam = null }) => {
     URL = URLParam == null ? URL : URL + URLParam;
-    console.log(URL);
+    // console.log(URL);
     try {
       const response = await fetch(URL, {
         method: "GET",

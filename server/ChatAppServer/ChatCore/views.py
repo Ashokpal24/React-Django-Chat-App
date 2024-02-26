@@ -85,8 +85,8 @@ class UserListView(APIView):
 class MessageListView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, *args, **kwargs):
-        room = Room.objects.get(slug=request.data['slug'])
+    def get(self, request, slug, *args, **kwargs):
+        room = Room.objects.get(slug=slug)
         messages = Message.objects.filter(room=room)[0:25]
 
         if not messages:
