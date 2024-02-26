@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User
+from .models import (User, Room, Message)
 
 
 class UserRegisterationSerializer(serializers.ModelSerializer):
@@ -40,3 +40,17 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["id", "name", 'email']
+
+
+class MessageDetailedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+        field = ["id", "user", "room", "content", "date_added"]
+        ordering = ('date_added')
+
+
+class MessageListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+        field = ["id", "user", "content"]
+        ordering = ('date_added')

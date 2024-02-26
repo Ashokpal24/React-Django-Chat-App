@@ -18,6 +18,7 @@ import {
   checkExpiration,
   profileURL,
   usersURL,
+  messagURL,
 } from "../utils.jsx";
 import CircularProgress from "@mui/material/CircularProgress";
 
@@ -28,6 +29,7 @@ const Chat = () => {
   const [userList, setUserList] = useState([]);
   const [input, setInput] = useState("");
   const [ws, setWs] = useState(null);
+  const [roomName, setRoomName] = useState("");
 
   const token = loadJWTToken();
   const navigateTo = useNavigate();
@@ -47,28 +49,30 @@ const Chat = () => {
   }, []);
 
   useEffect(() => {
-    const newWs = new WebSocket(`wss://5j85dm-8000.csb.app/ws/privateChat/`);
-    setWs(newWs);
-    newWs.onopen = () => {
-      console.log("Connected to WebSocket");
-    };
+    if (roomName != "") {
+      const newWs = new WebSocket(`wss://5j85dm-8000.csb.app/ws/${roomName}/`);
+      setWs(newWs);
+      newWs.onopen = () => {
+        console.log("Connected to WebSocket");
+      };
 
-    newWs.onmessage = (evt) => {
-      const data = JSON.parse(evt.data);
+      newWs.onmessage = (evt) => {
+        const data = JSON.parse(evt.data);
 
-      setMessages((prev) => {
-        return [...prev, data];
-      });
-    };
+        setMessages((prev) => {
+          return [...prev, data];
+        });
+      };
 
-    newWs.onclose = () => {
-      console.log("Disconnected from WebSocket");
-    };
+      newWs.onclose = () => {
+        console.log("Disconnected from WebSocket");
+      };
 
-    return () => {
-      newWs.close();
-    };
-  }, [profileData]);
+      return () => {
+        newWs.close();
+      };
+    }
+  }, [roomName]);
 
   useEffect(() => {
     let objDiv = document.getElementById("chat-container");
@@ -77,11 +81,20 @@ const Chat = () => {
     }
   }, [messages]);
 
-  // const createRoom = () => {
-  //   setRoomName(input);
-  // };
+  const createRoom = ({ targetUser }) => {
+    const roomName =
+      targetUser.id > profileData.id
+        ? targetUser.email.split("@")[0] + "_" + profileData.email.split("@")[0]
+        : profileData.email.split("@")[0] +
+          "_" +
+          targetUser.email.split("@")[0];
+    // console.log(roomName);
+    setRoomName(roomName);
+  };
 
-  const handleGetData = async ({ URL, setFunc }) => {
+  const handleGetData = async ({ URL, setFunc, URLParam = null }) => {
+    URL = URLParam == null ? URL : URL + URLParam;
+    console.log(URL);
     try {
       const response = await fetch(URL, {
         method: "GET",
@@ -103,7 +116,13 @@ const Chat = () => {
 
   const sendMessage = () => {
     if (ws) {
-      ws.send(JSON.stringify({ message: input, username: profileData.name }));
+      ws.send(
+        JSON.stringify({
+          message: input,
+          username: profileData.name,
+          roomname: roomName,
+        }),
+      );
       setInput("");
     }
   };
@@ -164,7 +183,9 @@ const Chat = () => {
           <Divider />
           {userList.map((user, index) => (
             <Box sx={{ height: "20px" }} key={user.name}>
-              <ListItemButton>
+              <ListItemButton
+                onClick={(event) => createRoom({ targetUser: user })}
+              >
                 <Typography>{user.name}</Typography>
               </ListItemButton>
             </Box>

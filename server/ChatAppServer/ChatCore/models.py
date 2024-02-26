@@ -55,3 +55,30 @@ class User(AbstractBaseUser):
 
     def has_perm(self, perm, obj=None):
         return self.is_admin
+
+
+class Room(models.Model):
+    slug = models.CharField(max_length=255)
+
+
+class UserRoom(models.Model):
+    room = models.ForeignKey(
+        Room,
+        on_delete=models.CASCADE,
+        related_name="room_list"
+    )
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="user_list"
+    )
+
+
+class Message(models.Model):
+    room = models.ForeignKey(
+        Room, related_name='messages', on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User, related_name='messages', on_delete=models.CASCADE)
+    content = models.TextField()
+    date_added = models.DateTimeField(auto_now_add=True)

@@ -4,12 +4,13 @@ from rest_framework.views import APIView
 from .serializer import (
     UserRegisterationSerializer,
     UserLoginSerializer,
-    UserProfileSerializer
+    UserProfileSerializer,
+    MessageListSerializer
 )
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate
-from .models import User
+from .models import (User, Room, Message)
 
 
 def get_token_from_user(user):
@@ -78,4 +79,20 @@ class UserListView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
         serializer = UserProfileSerializer(user_list, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class MessageListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        room = Room.objects.get(slug=request.data['slug'])
+        messages = Message.objects.filter(room=room)[0:25]
+
+        if not messages:
+            return Response(
+                {"message": "No Task available"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        serializer = MessageListSerializer(messages, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
