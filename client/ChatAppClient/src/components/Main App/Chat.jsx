@@ -45,7 +45,6 @@ const Chat = () => {
     }
     handleGetData({ URL: profileURL, setFunc: setProfileData });
     handleGetData({ URL: usersURL, setFunc: setUserList });
-
     setShowPage(true);
   }, []);
 
@@ -83,19 +82,21 @@ const Chat = () => {
   }, [messages]);
 
   const createRoom = ({ targetUser }) => {
-    const roomName =
+    const roomNameTemp =
       targetUser.id > profileData.id
         ? targetUser.email.split("@")[0] + "_" + profileData.email.split("@")[0]
         : profileData.email.split("@")[0] +
           "_" +
           targetUser.email.split("@")[0];
     // console.log(roomName);
-    handleGetData({
-      URL: messagURL,
-      setFunc: setMessages,
-      URLParam: roomName,
-    });
-    setRoomName(roomName);
+    if (roomName != roomNameTemp) {
+      handleGetData({
+        URL: messagURL,
+        setFunc: setMessages,
+        URLParam: roomNameTemp,
+      });
+      setRoomName(roomNameTemp);
+    }
   };
 
   const handleGetData = async ({ URL, setFunc, URLParam = null }) => {
@@ -110,8 +111,10 @@ const Chat = () => {
         },
       });
       if (!response.ok) {
+        if (URL == messagURL + URLParam) setFunc([]);
         const errorData = await response.json();
         console.error(errorData);
+        return;
       }
       const data = await response.json();
       setFunc(data);
@@ -188,7 +191,7 @@ const Chat = () => {
           </Typography>
           <Divider />
           {userList.map((user, index) => (
-            <Box sx={{ height: "20px" }} key={user.name}>
+            <Box sx={{ height: "50px" }} key={user.name}>
               <ListItemButton
                 onClick={(event) => createRoom({ targetUser: user })}
               >

@@ -1,6 +1,7 @@
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
+from django.core.exceptions import ObjectDoesNotExist
 from .serializer import (
     UserRegisterationSerializer,
     UserLoginSerializer,
@@ -75,7 +76,7 @@ class UserListView(APIView):
         user_list = User.objects.all().exclude(id=request.user.id)
         if not user_list:
             return Response(
-                {"message": "No Task available"},
+                {"message": "No User available"},
                 status=status.HTTP_404_NOT_FOUND
             )
         serializer = UserProfileSerializer(user_list, many=True)
@@ -86,12 +87,14 @@ class MessageListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, slug, *args, **kwargs):
-        room = Room.objects.get(slug=slug)
-        messages = Message.objects.filter(room=room)[0:25]
-
-        if not messages:
+        room = None
+        messages = None
+        try:
+            room = Room.objects.get(slug=slug)
+            messages = Message.objects.filter(room=room)[0:25]
+        except ObjectDoesNotExist:
             return Response(
-                {"message": "No Task available"},
+                {"message": "No Message available"},
                 status=status.HTTP_404_NOT_FOUND
             )
         serializer = MessageListSerializer(messages, many=True)
