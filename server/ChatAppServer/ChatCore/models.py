@@ -82,3 +82,16 @@ class Message(models.Model):
         User, related_name='messages', on_delete=models.CASCADE)
     content = models.TextField()
     date_added = models.DateTimeField(auto_now_add=True)
+
+
+class UserSession(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    session_key = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.name}'s session"
+
+    class Meta:
+        verbose_name = "User Session"
+        verbose_name_plural = "User Sessions"

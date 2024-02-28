@@ -11,7 +11,7 @@ from .serializer import (
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate
-from .models import (User, Room, Message)
+from .models import (User, Room, Message, UserSession)
 
 
 def get_token_from_user(user):
@@ -40,6 +40,9 @@ class UserRegisterationView(APIView):
 
 class UserLoginView(APIView):
     def post(self, request, *args, **kwargs):
+        if not request.session.session_key:
+            request.session.save()
+        print(request.session.session_key)
         serializer = UserLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         email = serializer.data.get('email')  # type: ignore
@@ -52,6 +55,18 @@ class UserLoginView(APIView):
             )
 
         token = get_token_from_user(user)
+
+        UserSession.objects.create(
+            user=user, session_key=request.session.session_key)
+
+        session_count = UserSession.objects.filter(user=user).count()
+        if session_count > 1:
+            UserSession.objects.filter(session_key=request.session.session_key).delete()
+            return Response(
+                {"Error": ["please logout from other device"]},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         return Response(
             {
                 "Token": token,
@@ -59,6 +74,13 @@ class UserLoginView(APIView):
             },
             status=status.HTTP_200_OK
         )
+
+
+class UserLogoutView(APIView):
+    def get(self, request, *args, **kwargs):
+        UserSession.objects.filter(user=request.user).delete()
+        return Response({"Msg": "Session deleted"
+                         }, status=status.HTTP_200_OK)
 
 
 class UserProfileView(APIView):
