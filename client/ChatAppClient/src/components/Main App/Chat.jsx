@@ -10,8 +10,10 @@ import {
   Avatar,
   Divider,
   Typography,
+  Drawer,
+  AppBar,
 } from "@mui/material";
-
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import {
   loadJWTToken,
   deleteJWTToken,
@@ -19,9 +21,10 @@ import {
   profileURL,
   usersURL,
   messagURL,
+  logoutURL,
 } from "../utils.jsx";
 import CircularProgress from "@mui/material/CircularProgress";
-
+import SendIcon from "@mui/icons-material/Send";
 const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [showPage, setShowPage] = useState(false);
@@ -30,7 +33,8 @@ const Chat = () => {
   const [input, setInput] = useState("");
   const [ws, setWs] = useState(null);
   const [roomName, setRoomName] = useState("");
-
+  const [openDrawer, setOpenDrawer] = useState(false);
+  const sendTarget = useRef("");
   const token = loadJWTToken();
   const navigateTo = useNavigate();
 
@@ -99,7 +103,7 @@ const Chat = () => {
     }
   };
 
-  const handleGetData = async ({ URL, setFunc, URLParam = null }) => {
+  const handleGetData = async ({ URL, setFunc = null, URLParam = null }) => {
     URL = URLParam == null ? URL : URL + URLParam;
     // console.log(URL);
     try {
@@ -117,7 +121,7 @@ const Chat = () => {
         return;
       }
       const data = await response.json();
-      setFunc(data);
+      if (setFunc != null) setFunc(data);
     } catch (error) {
       console.error("An error occurred during retriving of data:", error);
     }
@@ -150,180 +154,219 @@ const Chat = () => {
       <CircularProgress />
     </div>
   ) : (
-    <Box
-      sx={{
-        width: "100%",
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "center",
-        alignItems: "start",
-      }}
-    >
-      <Box
+    <div>
+      <AppBar
         sx={{
-          width: "300px",
-          height: "500px",
+          boxShadow: "none",
+          position: "static",
+          padding: "10px",
           display: "flex",
-          flexDirection: "column",
-          justifyContent: "start",
+          flexDirection: "row",
+          justifyContent: "space-between",
           alignItems: "center",
-          marginRight: "1rem",
+          backgroundColor: "white",
+          color: "black",
+          marginBottom: "1rem",
+          borderBottom: "1.5px solid #ccc",
+          zIndex: 0,
         }}
       >
-        <List
+        <Typography
           sx={{
-            display: "flex",
-            flexDirection: "column",
-            width: "100%",
-            height: "100%",
-            overflowY: "scroll",
-            scrollbarWidth: "thin",
-            scrollSnapAlign: "end",
-            scrollBehavior: "smooth",
-            scrollbarColor: "gray white",
-            marginBottom: "1.5rem",
-            borderRadius: "0.2rem",
-            padding: 0,
+            color: "black",
+            marginLeft: "2rem",
+            cursor: "pointer",
+            fontSize: "24px",
+            fontWeight: "600",
           }}
         >
-          <Typography sx={{ marginLeft: "1rem" }} variant="h6">
-            User List
-          </Typography>
-          <Divider />
-          {userList.map((user, index) => (
-            <Box sx={{ height: "50px" }} key={user.name}>
-              <ListItemButton
-                onClick={(event) => createRoom({ targetUser: user })}
-              >
-                <Typography>{user.name}</Typography>
-              </ListItemButton>
-            </Box>
-          ))}
-        </List>
-      </Box>
-      <Divider flexItem orientation="vertical" sx={{ marginRight: "1rem" }} />
+          {sendTarget.current == "" ? "No User" : sendTarget.current.name}
+        </Typography>
+        <Button
+          variant="contained"
+          color="error"
+          onClick={() => {
+            deleteJWTToken();
+            handleGetData({ URL: logoutURL });
+            navigateTo("/login");
+          }}
+        >
+          Logout
+        </Button>
+      </AppBar>
       <Box
         sx={{
-          width: "600px",
+          width: "100%",
           display: "flex",
-          flexDirection: "column",
-          justifyContent: "start",
-          alignItems: "center",
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "start",
         }}
       >
-        <List
-          id="chat-container"
+        <ArrowForwardIosIcon
           sx={{
-            display: "flex",
-            flexDirection: "column",
-            width: "100%",
-            height: "300px",
-            overflowY: "scroll",
-            scrollbarWidth: "thin",
-            scrollSnapAlign: "end",
-            scrollBehavior: "smooth",
-            scrollbarColor: "gray white",
-            borderRadius: "0.2rem",
+            position: "sticky",
+            top: "50%",
+            color: "grey",
+            ":hover": {
+              color: "black",
+              transform: "scale(2)",
+            },
+            transition: "0.2s",
+          }}
+          onClick={() => {
+            setOpenDrawer(true);
+          }}
+        />
+        <Drawer
+          anchor={"left"}
+          open={openDrawer}
+          sx={{ overflow: "hidden" }}
+          onClose={() => {
+            setOpenDrawer(false);
           }}
         >
-          {messages.map((data, index) => {
-            const userTempName = data["username"];
-            const isUser = userTempName == profileData.name;
-            return (
-              <ListItem key={index}>
-                <Box
-                  sx={{
-                    width: "100%",
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: isUser ? "start" : "end",
+          <List
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              width: "300px",
+              height: "100%",
+              overflowY: "scroll",
+              scrollbarWidth: "thin",
+              scrollSnapAlign: "end",
+              scrollBehavior: "smooth",
+              scrollbarColor: "gray white",
+              marginBottom: "1.5rem",
+              borderRadius: "0.2rem",
+              padding: 0,
+            }}
+          >
+            <Typography sx={{ marginLeft: "1rem" }} variant="h6">
+              User List
+            </Typography>
+            <Divider />
+            {userList.map((user, index) => (
+              <Box sx={{ height: "50px" }} key={user.name}>
+                <ListItemButton
+                  onClick={(event) => {
+                    sendTarget.current = user;
+                    createRoom({ targetUser: user });
                   }}
                 >
-                  <Avatar
-                    sx={{
-                      order: isUser ? "1" : "2",
-                      backgroundColor: isUser ? "#14a37f" : "#673ab7",
-                      marginRight: isUser ? "1rem" : "0rem",
-                      marginLeft: isUser ? "0rem" : "1rem",
-                      boxShadow: 1,
-                    }}
-                  >
-                    {userTempName.charAt(0) + userTempName.charAt(1)}
-                  </Avatar>
-                  <Typography
-                    sx={{
-                      order: isUser ? "2" : "1",
-                      backgroundColor: isUser ? "#e3f2fd" : "#1e88e5",
-                      minWidth: "20px",
-                      padding: 1,
-                      borderStartStartRadius: isUser ? "0rem" : "1rem",
-                      borderTopRightRadius: isUser ? "1rem" : "0rem",
-                      borderEndEndRadius: "1rem",
-                      borderBottomLeftRadius: "1rem",
-                      color: isUser ? "black" : "white",
-                      boxShadow: 1,
-                      userSelect: "none",
-                    }}
-                  >
-                    {data["message"]}
-                  </Typography>
-                </Box>
-              </ListItem>
-            );
-          })}
-        </List>
-        <Divider flexItem sx={{ marginBottom: "1.5rem" }} />
+                  <Typography>{user.name}</Typography>
+                </ListItemButton>
+              </Box>
+            ))}
+          </List>
+        </Drawer>
 
-        <TextField
-          sx={{
-            width: "100%",
-            marginBottom: "1.5rem",
-          }}
-          label="Chat"
-          variant="outlined"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-        />
         <Box
           sx={{
             width: "100%",
             display: "flex",
-            flexDirection: "row",
+            flexDirection: "column",
+            justifyContent: "start",
             alignItems: "center",
-            justifyContent: "end",
           }}
         >
-          <Button
-            sx={{ marginRight: "1.5rem" }}
-            variant="contained"
-            color="secondary"
-            onClick={() => {
-              sendMessage();
+          <List
+            id="chat-container"
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              width: "100%",
+              height: "70vh",
+              overflowY: "scroll",
+              scrollbarWidth: "thin",
+              scrollSnapAlign: "end",
+              scrollBehavior: "smooth",
+              scrollbarColor: "gray white",
+              borderRadius: "0.2rem",
             }}
           >
-            Send
-          </Button>
-          {/* <Button
-            sx={{ marginRight: "1.5rem" }}
-            variant="outlined"
-            onClick={createRoom}
-          >
-            Create Room
-          </Button> */}
-          <Button
-            variant="contained"
-            color="error"
-            onClick={() => {
-              deleteJWTToken();
-              navigateTo("/login");
+            {messages.map((data, index) => {
+              const userTempName = data["username"];
+              const isUser = userTempName == profileData.name;
+              return (
+                <ListItem key={index}>
+                  <Box
+                    sx={{
+                      width: "100%",
+                      display: "flex",
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: isUser ? "start" : "end",
+                    }}
+                  >
+                    <Avatar
+                      sx={{
+                        order: isUser ? "1" : "2",
+                        backgroundColor: isUser ? "#14a37f" : "#673ab7",
+                        marginRight: isUser ? "1rem" : "0rem",
+                        marginLeft: isUser ? "0rem" : "1rem",
+                        boxShadow: 1,
+                      }}
+                    >
+                      {userTempName.charAt(0) + userTempName.charAt(1)}
+                    </Avatar>
+                    <Typography
+                      sx={{
+                        order: isUser ? "2" : "1",
+                        backgroundColor: isUser ? "#e3f2fd" : "#1e88e5",
+                        minWidth: "20px",
+                        padding: 1,
+                        borderStartStartRadius: isUser ? "0rem" : "1rem",
+                        borderTopRightRadius: isUser ? "1rem" : "0rem",
+                        borderEndEndRadius: "1rem",
+                        borderBottomLeftRadius: "1rem",
+                        color: isUser ? "black" : "white",
+                        boxShadow: 1,
+                        userSelect: "none",
+                      }}
+                    >
+                      {data["message"]}
+                    </Typography>
+                  </Box>
+                </ListItem>
+              );
+            })}
+          </List>
+          <Divider flexItem sx={{ marginBottom: "1.5rem" }} />
+
+          <Box
+            sx={{
+              width: "100%",
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            Logout
-          </Button>
+            <TextField
+              sx={{
+                width: "90%",
+              }}
+              label="Chat"
+              variant="outlined"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+            />
+            <Button
+              sx={{ marginLeft: "1.5rem", backgroundColor: "#00a152" }}
+              variant="contained"
+              color="inherit"
+              onClick={() => {
+                sendMessage();
+              }}
+            >
+              <SendIcon />
+              Send
+            </Button>
+          </Box>
         </Box>
       </Box>
-    </Box>
+    </div>
   );
 };
 

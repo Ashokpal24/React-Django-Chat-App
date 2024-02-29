@@ -1,5 +1,6 @@
 import { jwtDecode } from "jwt-decode";
 const loginURL = "https://5j85dm-8000.csb.app/login/";
+const logoutURL = "https://5j85dm-8000.csb.app/logout/";
 const registerURL = "https://5j85dm-8000.csb.app/register/";
 const profileURL = "https://5j85dm-8000.csb.app/profile/";
 const usersURL = "https://5j85dm-8000.csb.app/users/";
@@ -46,4 +47,5 @@ export {
   profileURL,
   usersURL,
   messagURL,
+  logoutURL,
 };
