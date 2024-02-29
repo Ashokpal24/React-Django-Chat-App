@@ -154,7 +154,7 @@ const Chat = () => {
       <CircularProgress />
     </div>
   ) : (
-    <div>
+    <div style={{ height: "100vh" }}>
       <AppBar
         sx={{
           boxShadow: "none",
@@ -206,7 +206,7 @@ const Chat = () => {
         <ArrowForwardIosIcon
           sx={{
             position: "sticky",
-            top: "50%",
+            top: "0%",
             color: "grey",
             ":hover": {
               color: "black",
@@ -242,7 +242,15 @@ const Chat = () => {
               padding: 0,
             }}
           >
-            <Typography sx={{ marginLeft: "1rem" }} variant="h6">
+            <Typography
+              sx={{
+                marginLeft: "1rem",
+                padding: 1,
+                fontSize: "24px",
+                fontWeight: "600",
+              }}
+              variant="h6"
+            >
               User List
             </Typography>
             <Divider />
@@ -252,6 +260,7 @@ const Chat = () => {
                   onClick={(event) => {
                     sendTarget.current = user;
                     createRoom({ targetUser: user });
+                    setOpenDrawer(false);
                   }}
                 >
                   <Typography>{user.name}</Typography>
@@ -276,7 +285,7 @@ const Chat = () => {
               display: "flex",
               flexDirection: "column",
               width: "100%",
-              height: "70vh",
+              height: "75vh",
               overflowY: "scroll",
               scrollbarWidth: "thin",
               scrollSnapAlign: "end",
@@ -296,10 +305,10 @@ const Chat = () => {
                       display: "flex",
                       flexDirection: "row",
                       alignItems: "center",
-                      justifyContent: isUser ? "start" : "end",
+                      justifyContent: isUser ? "end" : "start",
                     }}
                   >
-                    <Avatar
+                    {/* <Avatar
                       sx={{
                         order: isUser ? "1" : "2",
                         backgroundColor: isUser ? "#14a37f" : "#673ab7",
@@ -309,15 +318,15 @@ const Chat = () => {
                       }}
                     >
                       {userTempName.charAt(0) + userTempName.charAt(1)}
-                    </Avatar>
+                    </Avatar> */}
                     <Typography
                       sx={{
                         order: isUser ? "2" : "1",
                         backgroundColor: isUser ? "#e3f2fd" : "#1e88e5",
                         minWidth: "20px",
                         padding: 1,
-                        borderStartStartRadius: isUser ? "0rem" : "1rem",
-                        borderTopRightRadius: isUser ? "1rem" : "0rem",
+                        borderStartStartRadius: isUser ? "1rem" : "0rem",
+                        borderTopRightRadius: isUser ? "0rem" : "1rem",
                         borderEndEndRadius: "1rem",
                         borderBottomLeftRadius: "1rem",
                         color: isUser ? "black" : "white",

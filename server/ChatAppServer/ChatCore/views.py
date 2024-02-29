@@ -61,7 +61,8 @@ class UserLoginView(APIView):
 
         session_count = UserSession.objects.filter(user=user).count()
         if session_count > 1:
-            UserSession.objects.filter(session_key=request.session.session_key).delete()
+            UserSession.objects.filter(
+                session_key=request.session.session_key).delete()
             return Response(
                 {"Error": ["please logout from other device"]},
                 status=status.HTTP_400_BAD_REQUEST
@@ -113,7 +114,7 @@ class MessageListView(APIView):
         messages = None
         try:
             room = Room.objects.get(slug=slug)
-            messages = Message.objects.filter(room=room)[0:25]
+            messages = Message.objects.filter(room=room)
         except ObjectDoesNotExist:
             return Response(
                 {"message": "No Message available"},
