@@ -187,7 +187,7 @@ const Chat = () => {
           color="error"
           onClick={() => {
             deleteJWTToken();
-            handleGetData({ URL: logoutURL });
+            // handleGetData({ URL: logoutURL });
             navigateTo("/login");
           }}
         >

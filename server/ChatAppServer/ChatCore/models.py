@@ -40,6 +40,7 @@ class User(AbstractBaseUser):
         blank=False,
         unique=True
     )
+    session_key = models.CharField(max_length=255, unique=True, null=True)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -51,7 +52,7 @@ class User(AbstractBaseUser):
     objects = UserManager()
 
     def __str__(self):
-        return f"Name: {self.name}\n Is Active: {self.is_active}\n Email: {self.email}"
+        return f"Name: {self.name}\nIs Active: {self.is_active}\nEmail: {self.email}\nSession: {self.session_key}"
 
     def has_perm(self, perm, obj=None):
         return self.is_admin
@@ -84,14 +85,14 @@ class Message(models.Model):
     date_added = models.DateTimeField(auto_now_add=True)
 
 
-class UserSession(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    session_key = models.CharField(max_length=255, unique=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+# class UserSession(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     session_key = models.CharField(max_length=255, unique=True)
+#     created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"{self.user.name}'s session"
+#     def __str__(self):
+#         return f"{self.user.name}'s session"
 
-    class Meta:
-        verbose_name = "User Session"
-        verbose_name_plural = "User Sessions"
+#     class Meta:
+#         verbose_name = "User Session"
+#         verbose_name_plural = "User Sessions"

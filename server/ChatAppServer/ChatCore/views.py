@@ -11,7 +11,7 @@ from .serializer import (
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate
-from .models import (User, Room, Message, UserSession)
+from .models import (User, Room, Message)
 
 
 def get_token_from_user(user):
@@ -24,10 +24,14 @@ def get_token_from_user(user):
 
 class UserRegisterationView(APIView):
     def post(self, request, *args, **kwargs):
+        if not request.session.session_key:
+            request.session.save()
+        request.data['session_key'] = request.session.session_key
         serializer = UserRegisterationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         # print("validated")
         user = serializer.save()
+        print(user)
         token = get_token_from_user(user)
         return Response(
             {
@@ -42,31 +46,35 @@ class UserLoginView(APIView):
     def post(self, request, *args, **kwargs):
         if not request.session.session_key:
             request.session.save()
-        print(request.session.session_key)
+        print(request.data)
         serializer = UserLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         email = serializer.data.get('email')  # type: ignore
         password = serializer.data.get('password')  # type: ignore
-        user = authenticate(email=email, password=password)
+        user = User.objects.get(email=email)
+        user.session_key = request.session.session_key
+        user.save()
+        auth_user = authenticate(email=email, password=password)
+        print(auth_user)
         if not user:
             return Response(
                 {"Error": ["Email or password is not valid!"]},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        token = get_token_from_user(user)
+        token = get_token_from_user(auth_user)
 
-        UserSession.objects.create(
-            user=user, session_key=request.session.session_key)
+        # UserSession.objects.create(
+        #     user=user, session_key=request.session.session_key)
 
-        session_count = UserSession.objects.filter(user=user).count()
-        if session_count > 1:
-            UserSession.objects.filter(
-                session_key=request.session.session_key).delete()
-            return Response(
-                {"Error": ["please logout from other device"]},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        # session_count = UserSession.objects.filter(user=user).count()
+        # if session_count > 1:
+        #     UserSession.objects.filter(
+        #         session_key=request.session.session_key).delete()
+        #     return Response(
+        #         {"Error": ["please logout from other device"]},
+        #         status=status.HTTP_400_BAD_REQUEST
+        #     )
 
         return Response(
             {
@@ -77,11 +85,11 @@ class UserLoginView(APIView):
         )
 
 
-class UserLogoutView(APIView):
-    def get(self, request, *args, **kwargs):
-        UserSession.objects.filter(user=request.user).delete()
-        return Response({"Msg": "Session deleted"
-                         }, status=status.HTTP_200_OK)
+# class UserLogoutView(APIView):
+#     def get(self, request, *args, **kwargs):
+#         UserSession.objects.filter(user=request.user).delete()
+#         return Response({"Msg": "Session deleted"
+#                          }, status=status.HTTP_200_OK)
 
 
 class UserProfileView(APIView):
