@@ -12,13 +12,39 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate
 from .models import (User, Room, Message)
+# import jwt
+# import datetime
+# from ChatAppServer import settings
+
+
+# class CustomPayloadToken(RefreshToken):
+#     def __init__(self, *args, **kwargs):
+#         self.session_key = kwargs.pop('session_key', None)
+#         super().__init__(*args, **kwargs)
+
+#     def payload_func(self):
+#         self.payload['session_key'] = self.session_key
 
 
 def get_token_from_user(user):
-    refresh = RefreshToken.for_user(user)
+    # timestamp = (datetime.datetime.now()).timestamp()
+    # custom_token = jwt.encode({
+    #     'user_id': user.pk,
+    #     'email': user.email,
+    #     'session_key': user.session_key,
+    #     'iat': int(timestamp),
+    #     'exp': int(timestamp) + int(settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds())
+    # }, settings.SECRET_KEY, algorithm='HS256')
+    # rt_temp = CustomPayloadToken(session_key=user.session_key)
+    # rt_temp.payload_func()
+    # refresh_token = rt_temp.for_user(
+    #     user)
+    refresh_token = RefreshToken.for_user(user)
+    access_token = str(refresh_token.access_token)
+    # print(access_token)
     return {
-        "refresh": str(refresh),
-        "access": str(refresh.access_token)  # type: ignore
+        "refresh": str(refresh_token),
+        "access": access_token
     }
 
 
@@ -51,17 +77,15 @@ class UserLoginView(APIView):
         serializer.is_valid(raise_exception=True)
         email = serializer.data.get('email')  # type: ignore
         password = serializer.data.get('password')  # type: ignore
-        user = User.objects.get(email=email)
-        user.session_key = request.session.session_key
-        user.save()
         auth_user = authenticate(email=email, password=password)
         print(auth_user)
-        if not user:
+        if not auth_user:
             return Response(
                 {"Error": ["Email or password is not valid!"]},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
+        auth_user.session_key = request.session.session_key
+        auth_user.save()
         token = get_token_from_user(auth_user)
 
         # UserSession.objects.create(

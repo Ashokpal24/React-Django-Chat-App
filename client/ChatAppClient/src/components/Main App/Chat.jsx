@@ -154,7 +154,7 @@ const Chat = () => {
       <CircularProgress />
     </div>
   ) : (
-    <div style={{ height: "100vh" }}>
+    <div style={{ height: "95vh" }}>
       <AppBar
         sx={{
           boxShadow: "none",
@@ -285,7 +285,7 @@ const Chat = () => {
               display: "flex",
               flexDirection: "column",
               width: "100%",
-              height: "75vh",
+              height: "65vh",
               overflowY: "scroll",
               scrollbarWidth: "thin",
               scrollSnapAlign: "end",
