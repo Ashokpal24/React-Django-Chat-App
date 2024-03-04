@@ -12,36 +12,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate
 from .models import (User, Room, Message)
-# import jwt
-# import datetime
-# from ChatAppServer import settings
-
-
-# class CustomPayloadToken(RefreshToken):
-#     def __init__(self, *args, **kwargs):
-#         self.session_key = kwargs.pop('session_key', None)
-#         super().__init__(*args, **kwargs)
-
-#     def payload_func(self):
-#         self.payload['session_key'] = self.session_key
 
 
 def get_token_from_user(user):
-    # timestamp = (datetime.datetime.now()).timestamp()
-    # custom_token = jwt.encode({
-    #     'user_id': user.pk,
-    #     'email': user.email,
-    #     'session_key': user.session_key,
-    #     'iat': int(timestamp),
-    #     'exp': int(timestamp) + int(settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds())
-    # }, settings.SECRET_KEY, algorithm='HS256')
-    # rt_temp = CustomPayloadToken(session_key=user.session_key)
-    # rt_temp.payload_func()
-    # refresh_token = rt_temp.for_user(
-    #     user)
     refresh_token = RefreshToken.for_user(user)
+    refresh_token.__setitem__('session_key', user.session_key)
     access_token = str(refresh_token.access_token)
-    # print(access_token)
     return {
         "refresh": str(refresh_token),
         "access": access_token
@@ -57,7 +33,6 @@ class UserRegisterationView(APIView):
         serializer.is_valid(raise_exception=True)
         # print("validated")
         user = serializer.save()
-        print(user)
         token = get_token_from_user(user)
         return Response(
             {
@@ -72,13 +47,11 @@ class UserLoginView(APIView):
     def post(self, request, *args, **kwargs):
         if not request.session.session_key:
             request.session.save()
-        print(request.data)
         serializer = UserLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         email = serializer.data.get('email')  # type: ignore
         password = serializer.data.get('password')  # type: ignore
         auth_user = authenticate(email=email, password=password)
-        print(auth_user)
         if not auth_user:
             return Response(
                 {"Error": ["Email or password is not valid!"]},
@@ -87,18 +60,6 @@ class UserLoginView(APIView):
         auth_user.session_key = request.session.session_key
         auth_user.save()
         token = get_token_from_user(auth_user)
-
-        # UserSession.objects.create(
-        #     user=user, session_key=request.session.session_key)
-
-        # session_count = UserSession.objects.filter(user=user).count()
-        # if session_count > 1:
-        #     UserSession.objects.filter(
-        #         session_key=request.session.session_key).delete()
-        #     return Response(
-        #         {"Error": ["please logout from other device"]},
-        #         status=status.HTTP_400_BAD_REQUEST
-        #     )
 
         return Response(
             {
