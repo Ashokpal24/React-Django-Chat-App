@@ -117,6 +117,10 @@ const Chat = () => {
       if (!response.ok) {
         if (URL == messagURL + URLParam) setFunc([]);
         const errorData = await response.json();
+        if (errorData["message"] == "user logged in from new device") {
+          deleteJWTToken();
+          navigateTo("/login");
+        }
         console.error(errorData);
         return;
       }
@@ -128,7 +132,7 @@ const Chat = () => {
   };
 
   const sendMessage = () => {
-    if (ws) {
+    if (ws && input != "") {
       ws.send(
         JSON.stringify({
           message: input,
@@ -231,7 +235,6 @@ const Chat = () => {
               display: "flex",
               flexDirection: "column",
               width: "300px",
-              height: "100%",
               overflowY: "scroll",
               scrollbarWidth: "thin",
               scrollSnapAlign: "end",
@@ -288,7 +291,6 @@ const Chat = () => {
               height: "65vh",
               overflowY: "scroll",
               scrollbarWidth: "thin",
-              scrollSnapAlign: "end",
               scrollBehavior: "smooth",
               scrollbarColor: "gray white",
               borderRadius: "0.2rem",
